@@ -9,3 +9,4 @@ dist/
 out/
 bin/
 public/build
+/src/generated/prisma
