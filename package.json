@@ -4,10 +4,7 @@
   "description": "Belajar node.js restful api",
   "main": "src/main.ts",
   "scripts": {
-    "test": "jest -i"
-  },
-  "transform": {
-    "^.+\\.jsx?$": "./path/to/wrapper.js"
+    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js -i"
   },
   "author": "Ilham Bonardo Marpaung",
   "license": "ISC",
@@ -38,6 +35,7 @@
     "jest": "^30.2.0",
     "prisma": "^6.19.1",
     "supertest": "^7.1.4",
+    "ts-node": "^10.9.2",
     "typescript": "^5.9.3"
   }
 }
