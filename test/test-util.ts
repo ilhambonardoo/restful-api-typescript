@@ -1,12 +1,23 @@
 import { prismaClient } from "../src/app/database";
+import bcrypt from "bcrypt";
 
 export class UserTest {
-  static async deleteAll() {
-    await prismaClient.user.deleteMany({});
+  static async delete() {
+    await prismaClient.user.deleteMany({
+      where: {
+        username: "test",
+      },
+    });
   }
-  static async deleteByUsername(username: string) {
-    await prismaClient.user.delete({
-      where: { username },
+
+  static async create() {
+    await prismaClient.user.create({
+      data: {
+        username: "test",
+        name: "test",
+        password: await bcrypt.hash("test", 10),
+        token: "test",
+      },
     });
   }
 }
