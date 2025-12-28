@@ -1,5 +1,6 @@
 import { prismaClient } from "../app/database";
 import { ResponseError } from "../error/response-error";
+import type { User } from "../generated/prisma/client";
 import {
   toUserResponse,
   type CreateUserRequest,
@@ -71,5 +72,9 @@ export class UserService {
     const response = toUserResponse(user);
     response.token = user.token!;
     return response;
+  }
+
+  static async get(user: User): Promise<UserResponse> {
+    return toUserResponse(user);
   }
 }
