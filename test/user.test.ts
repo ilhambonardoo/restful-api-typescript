@@ -3,9 +3,9 @@ import { web } from "../src/app/web";
 import { logger } from "../src/app/logging";
 import { UserTest } from "./test-util";
 
-describe("User Registration", () => {
+describe("POST /api/users/", () => {
   afterEach(async () => {
-    await UserTest.deleteAll();
+    await UserTest.delete();
   });
 
   test("should reject register new user if username is empty", async () => {
@@ -21,7 +21,7 @@ describe("User Registration", () => {
 
   test("should reject register new user if password is empty", async () => {
     const response = await supertest(web).post("/api/users").send({
-      username: "testuser",
+      username: "test",
       password: "",
       name: "Test User",
     });
@@ -33,7 +33,7 @@ describe("User Registration", () => {
 
   test("should reject register new user if name is empty", async () => {
     const response = await supertest(web).post("/api/users").send({
-      username: "testuser",
+      username: "test",
       password: "password123",
       name: "",
     });
@@ -45,7 +45,7 @@ describe("User Registration", () => {
 
   test("should accept when register add user success", async () => {
     const response = await supertest(web).post("/api/users").send({
-      username: "testuser",
+      username: "test",
       password: "password123",
       name: "Test User",
     });
@@ -53,19 +53,19 @@ describe("User Registration", () => {
     logger.debug(response.body);
     expect(response.status).toBe(200);
     expect(response.body.data).toBeDefined();
-    expect(response.body.data.username).toBe("testuser");
+    expect(response.body.data.username).toBe("test");
     expect(response.body.data.name).toBe("Test User");
   });
 
   test("should reject duplicate username", async () => {
     await supertest(web).post("/api/users").send({
-      username: "testuser",
+      username: "test",
       password: "password123",
       name: "Test User",
     });
 
     const response = await supertest(web).post("/api/users").send({
-      username: "testuser",
+      username: "test",
       password: "password456",
       name: "Another User",
     });
@@ -76,12 +76,55 @@ describe("User Registration", () => {
 
   test("should not return password in response", async () => {
     const response = await supertest(web).post("/api/users").send({
-      username: "testuser",
+      username: "test",
       password: "password123",
       name: "Test User",
     });
 
     expect(response.status).toBe(200);
     expect(response.body.data.password).toBeUndefined();
+  });
+});
+
+describe("POST /api/users/login", () => {
+  beforeEach(async () => await UserTest.create());
+
+  afterEach(async () => {
+    await UserTest.delete();
+  });
+
+  it("should be able to login", async () => {
+    const response = await supertest(web).post("/api/users/login").send({
+      username: "test",
+      password: "test",
+    });
+
+    logger.debug(response.body);
+    expect(response.status).toBe(200);
+    expect(response.body.data.username).toBe("test");
+    expect(response.body.data.name).toBe("test");
+    expect(response.body.data.token).toBeDefined();
+  });
+
+  it("should reject login if username wrong", async () => {
+    const response = await supertest(web).post("/api/users/login").send({
+      username: "ea",
+      password: "test",
+    });
+
+    logger.debug(response.body);
+    expect(response.status).toBe(401);
+    expect(response.body.errors).toBeDefined();
+  });
+
+  it("should reject login if password wrong", async () => {
+    const response = await supertest(web).post("/api/users/login").send({
+      username: "test",
+      password: "ea",
+    });
+
+    logger.debug(response.body);
+    expect(response.status).toBe(401);
+    expect(response.body.errors).toBeDefined();
   });
 });
