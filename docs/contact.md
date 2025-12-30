@@ -84,7 +84,7 @@ Response Body Errors:
 
 ## Get Contact API
 
-Endpoint : GET /api/contacts
+Endpoint : GET /api/contacts/:id
 
 Headers :
 
@@ -114,7 +114,7 @@ Response Body Errors:
 
 ## Search Conctact API
 
-Endpoint : GET /api/contacts
+Endpoint : GET /api/contacts/:id
 
 Headers :
 
