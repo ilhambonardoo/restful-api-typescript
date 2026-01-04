@@ -5,8 +5,10 @@ import {
   toContactResponse,
   type ContactResponse,
   type CreateContactRequest,
+  type SearchContactRequest,
   type UpdateContactRequest,
 } from "../model/contact-model";
+import type { Pageable } from "../model/page";
 import { ContactValidaton } from "../validation/contact-validation";
 import { Validation } from "../validation/validation";
 
@@ -80,5 +82,73 @@ export class ContactService {
     });
 
     return toContactResponse(contact);
+  }
+
+  static async search(
+    user: User,
+    request: SearchContactRequest
+  ): Promise<Pageable<ContactResponse>> {
+    const searchRequest = Validation.validate(ContactValidaton.SEARCH, request);
+    const skip = (searchRequest.page - 1) * searchRequest.size;
+
+    const filters = [];
+    // check if name exists
+    if (searchRequest.name) {
+      filters.push({
+        OR: [
+          {
+            first_name: {
+              contains: searchRequest.name,
+            },
+          },
+          {
+            last_name: {
+              contains: searchRequest.name,
+            },
+          },
+        ],
+      });
+    }
+    // check if email exists
+    if (searchRequest.email) {
+      filters.push({
+        email: {
+          contains: searchRequest.email,
+        },
+      });
+    }
+    // check if phone exists
+    if (searchRequest.phone) {
+      filters.push({
+        phone: {
+          contains: searchRequest.phone,
+        },
+      });
+    }
+
+    const contacts = await prismaClient.contact.findMany({
+      where: {
+        username: user.username,
+        AND: filters,
+      },
+      take: searchRequest.size,
+      skip: skip,
+    });
+
+    const total = await prismaClient.contact.count({
+      where: {
+        username: user.username,
+        AND: filters,
+      },
+    });
+
+    return {
+      data: contacts.map((contact) => toContactResponse(contact)),
+      pagging: {
+        current_page: searchRequest.page,
+        total_page: Math.ceil(total / searchRequest.size),
+        total_item: searchRequest.size,
+      },
+    };
   }
 }
