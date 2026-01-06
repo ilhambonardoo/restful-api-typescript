@@ -4,6 +4,18 @@ import { User, Contact } from "../src/generated/prisma/client";
 
 export class UserTest {
   static async delete() {
+    await prismaClient.address.deleteMany({
+      where: {
+        contact: {
+          username: "test",
+        },
+      },
+    });
+    await prismaClient.contact.deleteMany({
+      where: {
+        username: "test",
+      },
+    });
     await prismaClient.user.deleteMany({
       where: {
         username: "test",
@@ -70,5 +82,17 @@ export class ContactTest {
     }
 
     return contact;
+  }
+}
+
+export class AddressTest {
+  static async deleteAll() {
+    await prismaClient.address.deleteMany({
+      where: {
+        contact: {
+          username: "test",
+        },
+      },
+    });
   }
 }
