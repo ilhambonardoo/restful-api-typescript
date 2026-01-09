@@ -132,3 +132,102 @@ describe("GET /api/contacts/:contactId/addresses/:addressId", () => {
     expect(response.body.errors).toBeDefined();
   });
 });
+
+describe("PUT /api/contacts/:contactId/addresses/:addressid", () => {
+  beforeEach(async () => {
+    await UserTest.create();
+    await ContactTest.create();
+    await AddressTest.create();
+  });
+
+  afterEach(async () => {
+    await UserTest.delete();
+    await ContactTest.deleteAll();
+    await AddressTest.deleteAll();
+  });
+
+  it("should be able to update address", async () => {
+    const contact = await ContactTest.get();
+    const address = await AddressTest.get();
+
+    const response = await supertest(web)
+      .put(`/api/contacts/${contact.id}/addresses/${address.id}`)
+      .set("X-API-TOKEN", "test")
+      .send({
+        street: "Jalan belum ada",
+        city: "Jakarta",
+        province: "DKI JAKARTA",
+        country: "Indonesia",
+        postal_code: "12321",
+      });
+
+    logger.debug(response.body);
+    expect(response.status).toBe(200);
+    expect(response.body.data.id).toBe(address.id);
+    expect(response.body.data.street).toBe("Jalan belum ada");
+    expect(response.body.data.city).toBe("Jakarta");
+    expect(response.body.data.province).toBe("DKI JAKARTA");
+    expect(response.body.data.country).toBe("Indonesia");
+    expect(response.body.data.postal_code).toBe("12321");
+  });
+
+  it("should be reject if data is invalid", async () => {
+    const contact = await ContactTest.get();
+    const address = await AddressTest.get();
+
+    const response = await supertest(web)
+      .put(`/api/contacts/${contact.id}/addresses/${address.id}`)
+      .set("X-API-TOKEN", "test")
+      .send({
+        street: "Jalan belum ada",
+        city: "Jakarta",
+        province: "DKI JAKARTA",
+        country: "",
+        postal_code: "",
+      });
+
+    logger.debug(response.body);
+    expect(response.status).toBe(400);
+    expect(response.body.errors).toBeDefined();
+  });
+
+  it("should be address is not found", async () => {
+    const contact = await ContactTest.get();
+    const address = await AddressTest.get();
+
+    const response = await supertest(web)
+      .put(`/api/contacts/${contact.id}/addresses/${address.id + 1}`)
+      .set("X-API-TOKEN", "test")
+      .send({
+        street: "Jalan belum ada",
+        city: "Jakarta",
+        province: "DKI JAKARTA",
+        country: "Indonesia",
+        postal_code: "12321",
+      });
+
+    logger.debug(response.body);
+    expect(response.status).toBe(404);
+    expect(response.body.errors).toBeDefined();
+  });
+
+  it("should be contact is not found", async () => {
+    const contact = await ContactTest.get();
+    const address = await AddressTest.get();
+
+    const response = await supertest(web)
+      .put(`/api/contacts/${contact.id + 1}/addresses/${address.id}`)
+      .set("X-API-TOKEN", "test")
+      .send({
+        street: "Jalan belum ada",
+        city: "Jakarta",
+        province: "DKI JAKARTA",
+        country: "Indonesia",
+        postal_code: "12321",
+      });
+
+    logger.debug(response.body);
+    expect(response.status).toBe(404);
+    expect(response.body.errors).toBeDefined();
+  });
+});

@@ -25,3 +25,7 @@ apiRouter.get(
   "/api/contacts/:contactId/addresses/:addressId",
   AddressController.get
 );
+apiRouter.put(
+  "/api/contacts/:contactId/addresses/:addressId",
+  AddressController.update
+);

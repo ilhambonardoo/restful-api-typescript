@@ -1,11 +1,12 @@
 import { prismaClient } from "../app/database";
 import { ResponseError } from "../error/response-error";
-import type { User } from "../generated/prisma/client";
+import type { Address, User } from "../generated/prisma/client";
 import {
   toAddressResponse,
   type AddressResponse,
   type CreateAddressRequest,
   type GetAddressRequest,
+  type UpdateAddressRequest,
 } from "../model/address-model";
 import { AddressValidation } from "../validation/address-validation";
 import { Validation } from "../validation/validation";
@@ -33,6 +34,24 @@ export class AddressService {
     return toAddressResponse(address);
   }
 
+  static async checkAddressMustExists(
+    contactId: number,
+    addressId: number
+  ): Promise<Address> {
+    const address = await prismaClient.address.findFirst({
+      where: {
+        id: addressId,
+        contact_id: contactId,
+      },
+    });
+
+    if (!address) {
+      throw new ResponseError(404, "Address is not found");
+    }
+
+    return address;
+  }
+
   static async get(
     user: User,
     request: GetAddressRequest
@@ -44,16 +63,40 @@ export class AddressService {
       request.contact_id
     );
 
-    const address = await prismaClient.address.findFirst({
-      where: {
-        id: getRequest.id,
-        contact_id: getRequest.contact_id,
-      },
-    });
+    const address = await this.checkAddressMustExists(
+      getRequest.contact_id,
+      getRequest.id
+    );
 
-    if (!address) {
-      throw new ResponseError(404, "Address is not found");
-    }
+    return toAddressResponse(address);
+  }
+
+  static async update(
+    user: User,
+    request: UpdateAddressRequest
+  ): Promise<AddressResponse> {
+    const updateRequest = Validation.validate(
+      AddressValidation.UPDATE,
+      request
+    );
+    await ContactService.checkContactMustExists(
+      user.username,
+      request.contact_id
+    );
+
+    await this.checkAddressMustExists(
+      updateRequest.contact_id,
+      updateRequest.id
+    );
+
+    const address = await prismaClient.address.update({
+      where: {
+        id: updateRequest.id,
+        contact_id: updateRequest.contact_id,
+      },
+
+      data: updateRequest,
+    });
 
     return toAddressResponse(address);
   }
