@@ -23,6 +23,11 @@ export type GetAddressRequest = {
   id: number;
 };
 
+export type RemoveAddressRequest = {
+  contact_id: number;
+  id: number;
+};
+
 export type UpdateAddressRequest = {
   id: number;
   contact_id: number;
