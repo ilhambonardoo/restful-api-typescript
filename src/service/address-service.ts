@@ -100,4 +100,32 @@ export class AddressService {
 
     return toAddressResponse(address);
   }
+
+  static async remove(
+    user: User,
+    request: GetAddressRequest
+  ): Promise<AddressResponse> {
+    const removeRequest = Validation.validate(
+      AddressValidation.REMOVE,
+      request
+    );
+
+    await ContactService.checkContactMustExists(
+      user.username,
+      request.contact_id
+    );
+
+    await this.checkAddressMustExists(
+      removeRequest.contact_id,
+      removeRequest.id
+    );
+
+    const address = await prismaClient.address.delete({
+      where: {
+        id: removeRequest.id,
+      },
+    });
+
+    return toAddressResponse(address);
+  }
 }
